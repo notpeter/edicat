@@ -11,10 +11,13 @@ class EDI():
             raise ValueError(f"EDI passed unknown type: {type(edi)}")
 
         if self.text.startswith('UN'):
+            # UNA is advisory,
             if self.text.startswith('UNA'):
                 self.sep_seg = self.text[8:self.text.find('UNB')]
-            else:
+            elif self.text.startswith('UNB'):
                 self.sep_seg = "'"
+            else
+                raise ValueError("Edifact but UNA or UNB. Aborting.")
             self.lol = [li for li in self.text.split(self.sep_seg) if li.strip()]
 
     def __str__(self):
