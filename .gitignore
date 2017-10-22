@@ -1,0 +1,9 @@
+# Editor stuff
+*~
+\#*\#
+
+
+# Python Stuff
+__pycache__/
+*.egg-info/
+*.py[cod]
