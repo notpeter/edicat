@@ -21,7 +21,6 @@ class TestEdifact(unittest.TestCase):
                 "APD+EM2:0:1630::6+++++++DA'"
                 "UNT+13+1'"
                 "UNZ+1+1'")
-        iatb_lb = iatb.replace("'", "'\n")
+        iatb_lb = iatb.replace("'", "'\n").strip()
         iatb_str = str(edi.EDI(iatb))
         self.assertEquals(iatb_lb, iatb_str)
-
