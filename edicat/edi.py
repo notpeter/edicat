@@ -1,5 +1,6 @@
 # TODO: Better tests for '\r\n' and such.
 
+
 class EDI():
     def __init__(self, edi):
         if isinstance(edi, str):
@@ -23,7 +24,6 @@ class EDI():
         for li in self.text.split(self.sep_seg):
             if li.strip('\r\n'):
                 self.lol.append(li.strip('\r\n') + self.sep_seg)
-
 
     def __str__(self):
         return "\n".join(line for line in self.lol).rstrip()

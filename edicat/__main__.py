@@ -3,12 +3,14 @@ import sys
 
 from edicat.edi import EDI
 
+
 def output(edi, line_numbers=False):
     if line_numbers:
         for lineno, line in enumerate(str(edi).split("\n")):
             print(f"{lineno + 1: >6}\t{line}")
     else:
         print(edi)
+
 
 def main():
     parser = argparse.ArgumentParser(prog='edicat',
