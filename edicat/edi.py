@@ -16,7 +16,7 @@ class EDI():
         elif self.text.startswith('UNB'):
             self.sep_seg = "'"
         elif self.text.startswith('ISA'):
-            raise NotImplementedError("EDI X12 not supported.")
+            self.sep_seg = self.text[105]
         else:
             raise NotImplementedError("Unknown EDI format.")
 
