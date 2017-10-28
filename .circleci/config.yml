@@ -1,0 +1,41 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/python:3.6.1
+
+    working_directory: ~/app
+
+    steps:
+      - checkout
+
+      - run:
+          name: install dependencies
+          command: |
+            python3 -m venv venv3
+            . venv3/bin/activate
+            pip3 install -r requirements-dev.txt
+
+      - run:
+          name: run tests
+          command: |
+            . venv3/bin/activate
+            nosetests -v tests
+
+      - run:
+          name: build and (optionally) pypi deploy
+          command: |
+            . venv3/bin/activate
+            python3 setup.py sdist bdist_wheel
+            EDICAT_VERSION="$(python3 -c 'import edicat; print(edicat.__version__)')"
+            if [ -z ${CIRCLE_TAG+x} ]; then
+                echo "No CIRCLE_TAG so no pypi upload."
+            elif [[ "v$EDICAT_VERSION" != "$CIRCLE_TAG" ]]; then
+                echo "edicat.__version__ doesn't match CIRCLE_TAG (v$EDICAT_VERSION != $CIRCLE_TAG)"
+                echo "Git tags need to match the python module __version__ aborting."
+                exit 1
+            elif  [[ -z "$PYPI_USERNAME" ]] || [[ -z "$PYPI_PASSWORD" ]]; then
+                echo "PYPI_USERNAME or PYPI_PASSWORD are unset. Skipping"
+            else
+                twine upload --username $PYPI_USERNAME --password $PYPI_PASSWORD dist/edicat-$EDICAT_VERSION{-py3-none-any.whl,.tar.gz}
+            fi
