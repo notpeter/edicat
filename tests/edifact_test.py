@@ -2,6 +2,7 @@ import unittest
 
 import edicat.edi as edi
 
+
 class TestEdifact(unittest.TestCase):
 
     def test_linebreaks(self):
@@ -24,3 +25,7 @@ class TestEdifact(unittest.TestCase):
         iatb_lb = iatb.replace("'", "'\n").strip()
         iatb_str = str(edi.EDI(iatb))
         self.assertEquals(iatb_lb, iatb_str)
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -9,14 +9,14 @@ class EDI():
         elif hasattr(edi, 'read'):
             self.text = edi.read()
         else:
-            raise ValueError(f"EDI passed unknown type: {type(edi)}")
+            raise ValueError("EDI passed unknown type: {}".format(type(edi)))
 
         if self.text.startswith('UNA'):
             self.sep_seg = self.text[8]
         elif self.text.startswith('UNB'):
             self.sep_seg = "'"
-        elif self.text.startswith('ISA'):
-            raise NotImplementedError("EDI X12 not supported.")
+        elif self.text.startswith('ISA') and 'GS' in self.text[106:110]:
+            self.sep_seg = self.text[105]
         else:
             raise NotImplementedError("Unknown EDI format.")
 
@@ -29,4 +29,4 @@ class EDI():
         return "\n".join(line for line in self.lol).rstrip()
 
     def __repr__(self):
-        return f"EDI({repr(self.text)}"
+        return "EDI({0!r})".format(self.text)
