@@ -11,11 +11,11 @@ def output(edi, line_numbers=False):
     else:
         indent = 0
         for line in edi.lol:
-            if line.startswith('GS') or line.startswith('ST') or line.startswith('UNG') or line.startswith('UNH'):
-                indent += 1
-            elif line.startswith('GE') or line.startswith('SE') or line.startswith('UNE') or line.startswith('UNT'):
+            if line.startswith('GE') or line.startswith('SE') or line.startswith('UNE') or line.startswith('UNT'):
                 indent -= 1
             print("  " * indent, line, sep='')
+            if line.startswith('GS') or line.startswith('ST') or line.startswith('UNG') or line.startswith('UNH'):
+                indent += 1
 
 
 def main():
