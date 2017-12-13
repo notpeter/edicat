@@ -1,4 +1,5 @@
 import argparse
+import re
 import sys
 
 from edicat.edi import EDI
@@ -11,10 +12,11 @@ def output(edi, line_numbers=False):
     else:
         indent = 0
         for line in edi.lol:
-            if line.startswith('GE') or line.startswith('SE') or line.startswith('UNE') or line.startswith('UNT'):
+            tag = re.match("^([A-Z0-9]{2,3})", line).group()
+            if tag in {'GE', 'SE', 'UNE', 'UNT'}:
                 indent -= 1
             print("  " * indent, line, sep='')
-            if line.startswith('GS') or line.startswith('ST') or line.startswith('UNG') or line.startswith('UNH'):
+            if tag in {'GS', 'ST', 'UNG', 'UNH'}:
                 indent += 1
 
 
