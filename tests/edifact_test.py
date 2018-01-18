@@ -23,8 +23,8 @@ class TestEdifact(unittest.TestCase):
                 "UNT+13+1'"
                 "UNZ+1+1'")
         iatb_lb = iatb.replace("'", "'\n").strip()
-        iatb_str = str(edi.EDI(iatb))
-        self.assertEquals(iatb_lb, iatb_str)
+        iatb_str = "\n".join(edi.readdocument(iatb))
+        self.assertEqual(iatb_lb, iatb_str)
 
 
 if __name__ == '__main__':

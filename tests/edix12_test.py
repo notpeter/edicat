@@ -2,8 +2,12 @@ import unittest
 
 import edicat.edi as edi
 
+
 class TestEdifact(unittest.TestCase):
     maxDiff = None
+
+    # TODO: Better tests for '\r\n' and such.
+
     def test_linebreaks(self):
         po3040 = ("ISA*00*          *00*          *01*0011223456     *01*999999999      *950120*0147*U*00300*000000005*0*P*^~"
                   "GS*PO*0011223456*999999999*950120*0147*5*X*003040~"
@@ -31,4 +35,5 @@ class TestEdifact(unittest.TestCase):
                   "IEA*1*000000005~")
 
         po3040_lb = po3040.replace("~", "~\n").strip()
-        self.assertEquals(po3040_lb, str(edi.EDI(po3040)))
+        po3040_str = "\n".join(edi.readdocument(po3040))
+        self.assertEqual(po3040_lb, po3040_str)
