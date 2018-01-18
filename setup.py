@@ -1,11 +1,9 @@
-from setuptools import setup, find_packages
-from codecs import open
-from os import path
+from setuptools import setup
 
 import edicat
 
-### Workaround for https://github.com/pypa/setuptools/issues/510
-import setuptools.command.easy_install
+# Begin workaround to shave seconds off script execution.
+# Issue: https://github.com/pypa/setuptools/issues/510
 TEMPLATE = '''\
 # -*- coding: utf-8 -*-
 # EASY-INSTALL-ENTRY-SCRIPT: '{3}','{4}','{5}'
@@ -20,8 +18,10 @@ if __name__ == '__main__':
     sys.exit({2}())
 '''
 
+
 @classmethod
 def get_args(cls, dist, header=None):
+    """Monkey patch for slow stock setuptools get_args implementation."""
     if header is None:
         header = cls.get_header()
     spec = str(dist.as_requirement())
@@ -33,20 +33,26 @@ def get_args(cls, dist, header=None):
                 raise ValueError("Path separators not allowed in script names")
             script_text = TEMPLATE.format(ep.module_name, ep.attrs[0],
                                           '.'.join(ep.attrs), spec, group, name)
-            args = cls._get_script_args(type_, name, header, script_text)
+            args = cls._get_script_args(type_, name, header, script_text)  # noqa
             for res in args:
                 yield res
 
 
+# Monkey patch setuptools ScriptWriter.get_args with our get_args
+import setuptools.command.easy_install  # noqa
 setuptools.command.easy_install.ScriptWriter.get_args = get_args
-### End Workaround
+# End workaround for pypa/setuptools#510
 
 setup(
     name='edicat',
     version=edicat.__version__,
     description='Print and concatenate EDI files',
-    long_description=open(path.join(path.abspath(path.dirname(__file__)),
-                                    'README.md'), encoding='utf-8').read(),
+    long_description=(
+        'Detects EDI X12 and Edifact separators, printing one EDI segment '
+        'per line. This allows building shell pipelines (grep, find, etc) '
+        'with mixed format EDI files (X12, Edifact, CR, CR/LF, LF, no newlines '
+        ' etc.) or just paging through a single EDI file.'
+    ),
     url='https://github.com/notpeter/edicat',
     author='Peter Tripp',
     author_email='peter.tripp@gmail.com',
@@ -66,7 +72,6 @@ setup(
     entry_points={
         'console_scripts': [
             'edicat = edicat.__main__:main',
-            'ec = edicat.__main__:main',
         ],
     },
 )

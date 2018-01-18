@@ -1,41 +1,53 @@
 import argparse
-import re
 import sys
+from typing import Iterable, Iterator, BinaryIO
 
-from edicat.edi import EDI
+
+import edicat
+from edicat.edi import readdocument
 
 
-def output(edi, line_numbers=False):
+def lprint(line: str, lineno: int, line_numbers: bool = False) -> None:
+    """Print a line with optional line number"""
     if line_numbers:
-        for lineno, line in enumerate(str(edi).split("\n")):
-            print("{0: >6}\t{1}".format(lineno + 1, line))
+        print("{0: >6}\t{1}".format(lineno + 1, line))
     else:
-        indent = 0
-        for line in edi.lol:
-            tag = re.match("^([A-Z0-9]{2,3})", line).group()
-            if tag in {'GE', 'SE', 'UNE', 'UNT'}:
-                indent -= 1
-            print("  " * indent, line, sep='')
-            if tag in {'GS', 'ST', 'UNG', 'UNH'}:
-                indent += 1
+        print(line)
 
 
-def main():
-    parser = argparse.ArgumentParser(prog='edicat',
-                                     description="Print and concatenate EDI.")
-    parser.add_argument('edifile', nargs='?',
-                        type=argparse.FileType('r', encoding='UTF-8'),
-                        default=sys.stdin,
-                        help="EDI Filename (or stdin)")
+def openfiles(filenames: Iterable) -> Iterator[BinaryIO]:
+    """Take an iterable of filesnames and yields file objects."""
+    if not filenames:
+        filenames = ['-']
+    for filename in filenames:
+        if filename == '-':
+            yield sys.stdin.buffer
+        else:
+            with open(filename, 'rb') as file:
+                yield file
+
+
+def output(filenames: Iterable, line_numbers: bool = False) -> None:
+    for file in openfiles(filenames):
+        for lineno, line in enumerate(readdocument(file)):
+            lprint(line, lineno, line_numbers)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(prog='edicat', description="Print and concatenate EDI.")
+    parser.add_argument('filenames', nargs='*', help="Filename(s) or - for stdin")
     parser.add_argument("-n", "--lineno", action="store_true",
                         help="Number the output lines, starting at 1.")
-    parser.add_argument("-v", "--verbose", action="store_true")
+    parser.add_argument('--version', action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
-    if args.edifile == sys.stdin and sys.stdin.isatty():
+    if args.version:
+        print("edicat", edicat.__version__)
+    # This behavior diverges from cat, but is more user friendly.
+    elif not args.filenames and sys.stdin.isatty():
         parser.print_help()
         sys.exit(1)
-    e = EDI(args.edifile)
-    output(e, line_numbers=args.lineno)
+    else:
+        output(args.filenames, args.lineno)
 
 
 if __name__ == '__main__':

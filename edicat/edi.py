@@ -1,32 +1,64 @@
-# TODO: Better tests for '\r\n' and such.
+from io import BufferedReader, BytesIO
+
+from typing import Dict, Iterator, Union, BinaryIO
 
 
-class EDI():
-    def __init__(self, edi):
-        if isinstance(edi, str):
-            self.text = edi
-        # file, io.TextIOWrapper, etc
-        elif hasattr(edi, 'read'):
-            self.text = edi.read()
-        else:
-            raise ValueError("EDI passed unknown type: {}".format(type(edi)))
+def readdocument(edi: Union[str, BinaryIO]) -> Iterator[str]:
+    """Splits text on a line_break character (unless preceeded by an escape character)."""
+    if isinstance(edi, str):
+        sep = detect(edi)
+        edi = BytesIO(edi.encode('utf-8'))
+    else:
+        edi = BufferedReader(edi)
+        sep = detect(str(edi.peek(110), 'ascii'))
 
-        if self.text.startswith('UNA'):
-            self.sep_seg = self.text[8]
-        elif self.text.startswith('UNB'):
-            self.sep_seg = "'"
-        elif self.text.startswith('ISA') and 'GS' in self.text[106:110]:
-            self.sep_seg = self.text[105]
-        else:
-            raise NotImplementedError("Unknown EDI format.")
+    line_break = bytes(sep['segment'], 'ascii')
+    escape = bytes(sep['escape'], 'ascii') if 'escape' in sep else None
+    character = ''
+    buf = []
 
-        self.lol = []
-        for li in self.text.split(self.sep_seg):
-            if li.strip('\r\n'):
-                self.lol.append(li.strip('\r\n') + self.sep_seg)
+    while True:
+        last = character  # previously read character
+        character = edi.read(1)  # EOF returns b''
+        buf.append(str(character, 'utf-8'))
+        if (character == line_break and last != escape) or character == b'':
+            line = "".join(buf).strip()
+            buf[:] = []
+            if line:
+                yield line
+            if character == b'':
+                break
 
-    def __str__(self):
-        return "\n".join(line for line in self.lol).rstrip()
 
-    def __repr__(self):
-        return "EDI({0!r})".format(self.text)
+def detect(text: str) -> Dict[str, str]:
+    # EDI X12: begins with ISA (106 chars) followed by a GS segment
+    sep = {}
+    if text.startswith('ISA') and 'GS' in text[106:110]:
+        sep = {'element': text[103],
+               'subelement': text[104],
+               'segment': text[105],
+               'suffix': text[106:text.find('GS')]}
+        if text[82] != 'U':  # X12 before repetition has 'U' here.
+            sep['repetition'] = text[82]
+    # Edifact UNA: begins with UNA followed by UNB or UNG
+    elif text.startswith('UNA') and 'UN' in text[3:13]:
+        # ex: """UNA:+.? '\r\nUN..."""
+        sep = {'subelement': text[3],
+               'element': text[4],
+               'release': text[6],
+               'segment': text[8],
+               'suffix': text[9:text.find('UN')]}
+        if text[7] != ' ':  # Edifact before repetition has ' ' here.
+            sep['repetition'] = text[7]
+    # Edifact no UNA: begins with UNB followed by UNH
+    elif text.startswith('UNB') and 'UN' in text[3:13]:
+        sep = {'subelement': ':',
+               'element': '+',
+               'segment': "'",
+               'release': '?',
+               'repetition': '*',
+               'suffix': text[text.find("'") + 1:text.find('UN', 3)]}
+    else:
+        # TODO: warning not error
+        raise NotImplementedError("Unknown EDI format.")
+    return sep
