@@ -1,7 +1,6 @@
 import argparse
 import sys
-from typing import Iterable, Iterator, BinaryIO
-
+from typing import BinaryIO, Iterable, Iterator, Tuple
 
 import edicat
 from edicat.edi import readdocument
@@ -15,22 +14,26 @@ def lprint(line: str, lineno: int, line_numbers: bool = False) -> None:
         print(line)
 
 
-def openfiles(filenames: Iterable) -> Iterator[BinaryIO]:
-    """Take an iterable of filesnames and yields file objects."""
+def openfiles(filenames: Iterable) -> Tuple[str, Iterator[BinaryIO]]:
+    """Take an iterable of filenames and yields (filename, file object) tuples"""
     if not filenames:
         filenames = ['-']
     for filename in filenames:
         if filename == '-':
-            yield sys.stdin.buffer
+            yield 'stdin', sys.stdin.buffer
         else:
             with open(filename, 'rb') as file:
-                yield file
+                yield filename, file
 
 
-def output(filenames: Iterable, line_numbers: bool = False) -> None:
-    for file in openfiles(filenames):
-        for lineno, line in enumerate(readdocument(file)):
+def output(filenames: Iterable, line_numbers: bool = False) -> int:
+    ret_code = 0
+    for filename, file in openfiles(filenames):
+        lineno = 0
+        for line in readdocument(file, filename):
             lprint(line, lineno, line_numbers)
+        ret_code = ret_code or int(lineno == 0)
+    return ret_code
 
 
 def main() -> None:
@@ -47,7 +50,7 @@ def main() -> None:
         parser.print_help()
         sys.exit(1)
     else:
-        output(args.filenames, args.lineno)
+        sys.exit(output(args.filenames, args.lineno))
 
 
 if __name__ == '__main__':

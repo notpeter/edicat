@@ -68,5 +68,9 @@ IEA*1*000000005~
 
 ## Known Issues:
 
+* `cat /path/* | edicat` won't work with documents that are mixed spec/separators (stdin has no hints as to file boundary).
+  * Workarounds:
+    * `edicat /path/*.edi`
+    * `find /path/ -name '*.edi' | xargs edicat`
 * No TRADACOMS support
 * No HL7 support

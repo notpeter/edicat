@@ -9,7 +9,7 @@ class TestEdifact(unittest.TestCase):
     # TODO: Better tests for '\r\n' and such.
 
     def test_linebreaks(self):
-        po3040 = ("ISA*00*          *00*          *01*0011223456     *01*999999999      *950120*0147*U*00300*000000005*0*P*^~"
+        po3040 = ("ISA*00*          *00*          *01*0011223456     *01*999999999      *950120*0147*U*00300*000000005*0*P*^~"  # noqa
                   "GS*PO*0011223456*999999999*950120*0147*5*X*003040~"
                   "ST*850*000000001~"
                   "BEG*00*SA*95018017***950118~"
@@ -37,3 +37,7 @@ class TestEdifact(unittest.TestCase):
         po3040_lb = po3040.replace("~", "~\n").strip()
         po3040_str = "\n".join(edi.readdocument(po3040))
         self.assertEqual(po3040_lb, po3040_str)
+
+
+if __name__ == '__main__':
+    unittest.main()

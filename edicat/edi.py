@@ -1,9 +1,14 @@
+import sys
 from io import BufferedReader, BytesIO
-
 from typing import Dict, Iterator, Union, BinaryIO
 
 
-def readdocument(edi: Union[str, BinaryIO]) -> Iterator[str]:
+# ISA has fixed width elements. These should all be equal. 103 is official sep.element position
+isa_element_sep = [3, 6, 17, 20, 31, 34, 50, 53, 69, 76, 81, 83, 89, 99, 101, 103]
+isa_example = "ISA*00*          *00*          *ZZ*SOMEBODYELSE   *ZZ*MAYBEYOU       *171231*2359*U*00401*000012345*0*P*:~"  # noqa
+
+
+def readdocument(edi: Union[str, BinaryIO], filename='stream') -> Iterator[str]:
     """Splits text on a line_break character (unless preceeded by an escape character)."""
     if isinstance(edi, str):
         sep = detect(edi)
@@ -11,6 +16,9 @@ def readdocument(edi: Union[str, BinaryIO]) -> Iterator[str]:
     else:
         edi = BufferedReader(edi)
         sep = detect(str(edi.peek(110), 'ascii'))
+    if not sep:
+        print("Skipping...%s" % filename, file=sys.stderr)
+        return
 
     line_break = bytes(sep['segment'], 'ascii')
     escape = bytes(sep['escape'], 'ascii') if 'escape' in sep else None
@@ -31,15 +39,23 @@ def readdocument(edi: Union[str, BinaryIO]) -> Iterator[str]:
 
 
 def detect(text: str) -> Dict[str, str]:
-    # EDI X12: begins with ISA (106 chars) followed by a GS segment
+    """Takes an EDI string and returns detected separators as a dictionary."""
+
     sep = {}
-    if text.startswith('ISA') and 'GS' in text[106:110]:
-        sep = {'element': text[103],
-               'subelement': text[104],
-               'segment': text[105],
-               'suffix': text[106:text.find('GS')]}
-        if text[82] != 'U':  # X12 before repetition has 'U' here.
-            sep['repetition'] = text[82]
+    # EDI X12: begins with ISA (106 chars) followed by a GS segment
+    if text.startswith('ISA'):
+        if 'GS' in text[106:110] and len(set([text[pos] for pos in isa_element_sep])) == 1:
+            sep = {'element': text[103],
+                   'subelement': text[104],
+                   'segment': text[105],
+                   'suffix': text[106:text.find('GS')]}
+            if text[82] != 'U':  # X12 before repetition has 'U' here.
+                sep['repetition'] = text[82]
+        else:
+            print("Invalid X12 ISA Header.",
+                  "Expected: %s" % isa_example,
+                  "Received: '%r'" % (text[:106]),
+                  file=sys.stderr, sep="\n")
     # Edifact UNA: begins with UNA followed by UNB or UNG
     elif text.startswith('UNA') and 'UN' in text[3:13]:
         # ex: """UNA:+.? '\r\nUN..."""
@@ -59,6 +75,5 @@ def detect(text: str) -> Dict[str, str]:
                'repetition': '*',
                'suffix': text[text.find("'") + 1:text.find('UN', 3)]}
     else:
-        # TODO: warning not error
-        raise NotImplementedError("Unknown EDI format.")
+        print("Found something that doesn't look like EDI: %r" % text[:8], file=sys.stderr)
     return sep
