@@ -1,4 +1,5 @@
 import argparse
+import os
 import sys
 from typing import BinaryIO, Iterable, Iterator, Tuple
 
@@ -28,11 +29,14 @@ def openfiles(filenames: Iterable) -> Tuple[str, Iterator[BinaryIO]]:
 
 def output(filenames: Iterable, line_numbers: bool = False) -> int:
     ret_code = 0
-    for filename, file in openfiles(filenames):
-        lineno = 0
-        for line in readdocument(file, filename):
-            lprint(line, lineno, line_numbers)
-        ret_code = ret_code or int(lineno == 0)
+    try:
+        for filename, file in openfiles(filenames):
+            lineno = 0
+            for line in readdocument(file, filename):
+                lprint(line, lineno, line_numbers)
+            ret_code = ret_code or int(lineno == 0)
+    except BrokenPipeError:
+        sys.stdout = os.fdopen(1)  # suppress "Exception ignored in: [...]" when pager terminates.
     return ret_code
 
 
