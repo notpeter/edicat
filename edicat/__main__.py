@@ -29,6 +29,7 @@ def openfiles(filenames: Iterable) -> Tuple[str, Iterator[BinaryIO]]:
 
 def output(filenames: Iterable, line_numbers: bool = False) -> int:
     ret_code = 0
+    lineno = 0
     try:
         for filename, file in openfiles(filenames):
             for lineno, line in enumerate(readdocument(file, filename)):
