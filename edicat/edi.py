@@ -24,7 +24,6 @@ def readdocument(edi: Union[str, BinaryIO], filename='stream') -> Iterator[str]:
     escape = bytes(sep['escape'], 'ascii') if 'escape' in sep else None
     blacklist = {b'\r', b'\n'} if sep.get('hard_wrap') else set()
     last = ''
-    character = ''
     buf = []
 
     while True:
@@ -83,7 +82,8 @@ def detect(text: str) -> Dict[str, str]:
 
     # This detects "hard wrapped" EDI files where a CRLF is inserted every 80 chars
     # TODO: Potentially support LF (\n) only hard wrap.
-    if (text[80] == text[162] == text[244] == '\r' and
+    if (len(text) > 246 and
+        text[80] == text[162] == text[244] == '\r' and
         text[81] == text[163] == text[245] == '\n'):
         sep['hard_wrap'] = True
     return sep
