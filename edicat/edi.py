@@ -24,7 +24,6 @@ def readdocument(edi: Union[str, BinaryIO], filename='stream') -> Iterator[str]:
     escape = bytes(sep['escape'], 'ascii') if 'escape' in sep else None
     blacklist = {b'\r', b'\n'} if sep.get('hard_wrap') else set()
     last = ''
-    character = ''
     buf = []
 
     while True:
