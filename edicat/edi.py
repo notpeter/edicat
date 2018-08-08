@@ -8,14 +8,15 @@ isa_element_sep = [3, 6, 17, 20, 31, 34, 50, 53, 69, 76, 81, 83, 89, 99, 101, 10
 isa_example = "ISA*00*          *00*          *ZZ*SOMEBODYELSE   *ZZ*MAYBEYOU       *171231*2359*U*00401*000012345*0*P*:~"  # noqa
 
 
-def readdocument(edi: Union[str, BinaryIO], filename='stream') -> Iterator[str]:
+def readdocument(edi: Union[str, BinaryIO], filename: str = 'stream', encoding: str ='latin-1') -> Iterator[str]:
     """Splits text on a line_break character (unless preceeded by an escape character)."""
+    print(filename)
     if isinstance(edi, str):
         sep = detect(edi)
-        edi = BytesIO(edi.encode('utf-8'))
+        edi = BytesIO(edi.encode(encoding))
     else:
         edi = BufferedReader(edi)
-        sep = detect(str(edi.peek(110), 'ascii'))
+        sep = detect(str(edi.peek(), encoding))
     if not sep:
         print("Skipping...%s" % filename, file=sys.stderr)
         return
@@ -30,7 +31,7 @@ def readdocument(edi: Union[str, BinaryIO], filename='stream') -> Iterator[str]:
         character = edi.read(1)  # EOF returns b''
         if character in blacklist:
             continue
-        buf.append(str(character, 'utf-8'))
+        buf.append(str(character, encoding))
         if (character == line_break and last != escape) or character == b'':
             line = "".join(buf).strip()
             buf[:] = []
@@ -55,9 +56,9 @@ def detect(text: str) -> Dict[str, str]:
             if text[82] != 'U':  # X12 before repetition has 'U' here.
                 sep['repetition'] = text[82]
         else:
-            print("Invalid X12 ISA Header.",
+            print("Invalid X12 ISA Header (expected 16 fixed width fields, 106 characters wide)",
                   "Expected: %s" % isa_example,
-                  "Received: '%r'" % (text[:106]),
+                  "Received: %s" % (text[:106]),
                   file=sys.stderr, sep="\n")
     # Edifact UNA: begins with UNA followed by UNB or UNG
     elif text.startswith('UNA') and 'UN' in text[3:13]:
