@@ -10,7 +10,6 @@ isa_example = "ISA*00*          *00*          *ZZ*SOMEBODYELSE   *ZZ*MAYBEYOU   
 
 def readdocument(edi: Union[str, BinaryIO], filename: str = 'stream', encoding: str ='latin-1') -> Iterator[str]:
     """Splits text on a line_break character (unless preceeded by an escape character)."""
-    print(filename)
     if isinstance(edi, str):
         sep = detect(edi)
         edi = BytesIO(edi.encode(encoding))
