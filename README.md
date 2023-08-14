@@ -1,6 +1,5 @@
 # edicat: Print and transform EDI
 
-![build-status](https://circleci.com/gh/notpeter/edicat.svg?style=shield&circle-token=:circle-token)
 ![pypi-version](https://img.shields.io/pypi/v/edicat.svg)
 
 ## Why?
