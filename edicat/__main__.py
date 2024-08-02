@@ -1,7 +1,8 @@
 import argparse
 import os
 import sys
-from typing import BinaryIO, Iterable, Iterator, Tuple
+from typing import Iterable, Iterator, Tuple, Union
+from io import BufferedReader, BytesIO
 
 import edicat
 from edicat.edi import readdocument
@@ -15,7 +16,7 @@ def lprint(line: str, lineno: int, line_numbers: bool = False) -> None:
         print(line)
 
 
-def openfiles(filenames: Iterable) -> Tuple[str, Iterator[BinaryIO]]:
+def openfiles(filenames: Iterable[str]) -> Iterator[Tuple[str, BufferedReader]]:
     """Take an iterable of filenames and yields (filename, file object) tuples"""
     if not filenames:
         filenames = ['-']
@@ -27,7 +28,7 @@ def openfiles(filenames: Iterable) -> Tuple[str, Iterator[BinaryIO]]:
                 yield filename, file
 
 
-def output(filenames: Iterable, line_numbers: bool = False) -> int:
+def output(filenames: Iterable[str], line_numbers: bool = False) -> int:
     ret_code = 0
     lineno = 0
     try:

@@ -1,10 +1,9 @@
 import sys
-from setuptools import setup
-
 # This check and everything above must remain compatible with Python 2.7.
-if sys.version_info[:2] < (3, 5):
-    raise SystemExit("Python >= 3.5 required.")
+if sys.version_info[:2] < (3, 7):
+    raise SystemExit("Python >= 3.7 required.")
 
+from setuptools import setup
 import edicat  # noqa
 
 # Begin workaround to shave seconds off script execution.

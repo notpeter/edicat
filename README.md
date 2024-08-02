@@ -65,6 +65,12 @@ GE*1*5~
 IEA*1*000000005~
 ```
 
+## Run tests
+
+```
+python3 -m unittest discover -s tests -p '*_test.py'
+```
+
 ## Known Issues:
 
 * `cat /path/* | edicat` won't work with documents that are mixed spec/separators (stdin has no hints as to file boundary).
