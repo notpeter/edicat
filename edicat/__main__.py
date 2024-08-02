@@ -1,8 +1,8 @@
 import argparse
 import os
 import sys
-from typing import Iterable, Iterator, Tuple, Union
-from io import BufferedReader, BytesIO
+from typing import Iterable, Iterator, Tuple
+from io import BufferedReader
 
 import edicat
 from edicat.edi import readdocument
@@ -19,12 +19,12 @@ def lprint(line: str, lineno: int, line_numbers: bool = False) -> None:
 def openfiles(filenames: Iterable[str]) -> Iterator[Tuple[str, BufferedReader]]:
     """Take an iterable of filenames and yields (filename, file object) tuples"""
     if not filenames:
-        filenames = ['-']
+        filenames = ["-"]
     for filename in filenames:
-        if filename == '-':
-            yield 'stdin', sys.stdin.buffer
+        if filename == "-":
+            yield "stdin", sys.stdin.buffer
         else:
-            with open(filename, 'rb') as file:
+            with open(filename, "rb") as file:
                 yield filename, file
 
 
@@ -42,11 +42,12 @@ def output(filenames: Iterable[str], line_numbers: bool = False) -> int:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(prog='edicat', description="Print and concatenate EDI.")
-    parser.add_argument('filenames', nargs='*', help="Filename(s) or - for stdin")
-    parser.add_argument("-n", "--lineno", action="store_true",
-                        help="Number the output lines, starting at 1.")
-    parser.add_argument('--version', action="store_true", help=argparse.SUPPRESS)
+    parser = argparse.ArgumentParser(prog="edicat", description="Print and concatenate EDI.")
+    parser.add_argument("filenames", nargs="*", help="Filename(s) or - for stdin")
+    parser.add_argument(
+        "-n", "--lineno", action="store_true", help="Number the output lines, starting at 1."
+    )
+    parser.add_argument("--version", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args.version:
         print("edicat", edicat.__version__)
@@ -58,5 +59,5 @@ def main() -> None:
         sys.exit(output(args.filenames, args.lineno))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
