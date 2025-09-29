@@ -1,6 +1,6 @@
 import sys
 from io import BufferedReader, BytesIO
-from typing import Iterator, Union
+from typing import Iterator, Union, List
 
 from typing import Optional
 from dataclasses import dataclass
@@ -45,7 +45,7 @@ def readdocument(
     escape = bytes(sep.escape, "ascii") if sep.escape else None
     blacklist = {b"\r", b"\n"} if sep.hard_wrap else set()
     last = ""
-    buf = []
+    buf: List[str] = []
 
     while True:
         character = edi.read(1)  # EOF returns b''
