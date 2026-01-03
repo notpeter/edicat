@@ -1,8 +1,7 @@
 import argparse
 import os
 import sys
-from typing import Iterable, Iterator, Tuple
-from io import BufferedReader
+from typing import BinaryIO, Iterable, Iterator, Tuple
 
 import edicat
 from edicat.edi import readdocument
@@ -16,7 +15,7 @@ def lprint(line: str, lineno: int, line_numbers: bool = False) -> None:
         print(line)
 
 
-def openfiles(filenames: Iterable[str]) -> Iterator[Tuple[str, BufferedReader]]:
+def openfiles(filenames: Iterable[str]) -> Iterator[Tuple[str, BinaryIO]]:
     """Take an iterable of filenames and yields (filename, file object) tuples"""
     if not filenames:
         filenames = ["-"]
@@ -37,15 +36,22 @@ def output(filenames: Iterable[str], line_numbers: bool = False) -> int:
                 lprint(line, lineno, line_numbers)
             ret_code = ret_code or int(lineno == 0)
     except BrokenPipeError:
-        sys.stdout = os.fdopen(1)  # suppress "Exception ignored in: [...]" when pager terminates.
+        sys.stdout = os.fdopen(
+            1
+        )  # suppress "Exception ignored in: [...]" when pager terminates.
     return ret_code
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(prog="edicat", description="Print and concatenate EDI.")
+    parser = argparse.ArgumentParser(
+        prog="edicat", description="Print and concatenate EDI."
+    )
     parser.add_argument("filenames", nargs="*", help="Filename(s) or - for stdin")
     parser.add_argument(
-        "-n", "--lineno", action="store_true", help="Number the output lines, starting at 1."
+        "-n",
+        "--lineno",
+        action="store_true",
+        help="Number the output lines, starting at 1.",
     )
     parser.add_argument("--version", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()

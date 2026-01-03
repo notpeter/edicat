@@ -1,9 +1,7 @@
 import sys
-from io import BufferedReader, BytesIO
-from typing import Iterator, Union, List
-
-from typing import Optional
 from dataclasses import dataclass
+from io import BufferedReader, BytesIO
+from typing import Iterator, List, Optional, Union
 
 
 @dataclass
@@ -24,7 +22,9 @@ isa_example = "ISA*00*          *00*          *ZZ*SOMEBODYELSE   *ZZ*MAYBEYOU   
 
 
 def readdocument(
-    edi_obj: Union[str, BufferedReader], filename: str = "stream", encoding: str = "latin-1"
+    edi_obj: Union[str, BufferedReader],
+    filename: str = "stream",
+    encoding: str = "latin-1",
 ) -> Iterator[str]:
     """Splits text on a line_break character (unless preceeded by an escape character)."""
 
@@ -68,7 +68,10 @@ def detect(text: str) -> Optional[Sep]:
     sep: Optional[Sep] = None
     # EDI X12: begins with ISA (106 chars) followed by a GS segment
     if text.startswith("ISA"):
-        if "GS" in text[106:110] and len(set([text[pos] for pos in isa_element_sep])) == 1:
+        if (
+            "GS" in text[106:110]
+            and len(set([text[pos] for pos in isa_element_sep])) == 1
+        ):
             sep = Sep(
                 element=text[103],
                 subelement=text[104],
@@ -109,7 +112,9 @@ def detect(text: str) -> Optional[Sep]:
         )
 
     if sep is None:
-        print("Found something that doesn't look like EDI: %r" % text[:8], file=sys.stderr)
+        print(
+            "Found something that doesn't look like EDI: %r" % text[:8], file=sys.stderr
+        )
     else:
         # This detects "hard wrapped" EDI files where a CRLF is inserted every 80 chars
         # TODO: Potentially support LF (\n) only hard wrap.
