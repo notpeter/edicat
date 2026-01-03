@@ -298,11 +298,18 @@ impl<R: Read> Iterator for EdiDocumentReader<R> {
 /// Read an EDI document from a string and return an iterator of segments.
 pub fn read_document_str(text: &str) -> Option<impl Iterator<Item = String>> {
     let sep = detect(text)?;
-    Some(EdiDocumentReader::new(std::io::Cursor::new(text.to_string()), sep))
+    Some(EdiDocumentReader::new(
+        std::io::Cursor::new(text.to_string()),
+        sep,
+    ))
 }
 
 /// Read an EDI document from a reader, using the provided text for detection.
-pub fn read_document<R: Read>(reader: R, peek_text: &str, filename: &str) -> Option<impl Iterator<Item = String>> {
+pub fn read_document<R: Read>(
+    reader: R,
+    peek_text: &str,
+    filename: &str,
+) -> Option<impl Iterator<Item = String>> {
     let sep = detect(peek_text);
     match sep {
         Some(s) => Some(EdiDocumentReader::new(reader, s)),
