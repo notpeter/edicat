@@ -61,5 +61,5 @@ jobs:
 
       - name: Test CLI
         run: |
-          echo "ISA*00*          *00*          *01*0011223456     *01*999999999      *950120*0147*U*00300*000000005*0*P*^~GS*PO*test~SE*2*1~" | ./rust/target/release/edicat | head -1 | grep -q "ISA"
-          echo "UNA:+.? 'UNB+IATB:1+test'UNT+1+1'" | ./rust/target/release/edicat | head -1 | grep -q "UNA"
+          echo "ISA*00*          *00*          *01*0011223456     *01*999999999      *950120*0147*U*00300*000000005*0*P*^~GS*PO*test~SE*2*1~" | ./target/release/edicat | head -1 | grep -q "ISA"
+          echo "UNA:+.? 'UNB+IATB:1+test'UNT+1+1'" | ./target/release/edicat | head -1 | grep -q "UNA"
