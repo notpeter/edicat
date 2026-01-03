@@ -1,0 +1,28 @@
+[package]
+name = "edicat"
+version = "2024.8.2"
+edition = "2021"
+authors = ["Peter Tripp <peter.tripp@gmail.com>"]
+description = "Print and concatenate EDI files"
+license = "MIT"
+keywords = ["edi", "edicat", "edifact", "ansix12"]
+categories = ["command-line-utilities", "text-processing"]
+repository = "https://github.com/notpeter/edicat"
+readme = "../README.md"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+
+[dev-dependencies]
+
+[[bin]]
+name = "edicat"
+path = "src/main.rs"
+
+[lib]
+name = "edicat"
+path = "src/lib.rs"
+
+[profile.release]
+lto = true
+strip = true
