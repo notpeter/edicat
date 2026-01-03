@@ -1,7 +1,7 @@
 import sys
 from dataclasses import dataclass
 from io import BufferedReader, BytesIO
-from typing import Iterator, List, Optional, Union
+from typing import BinaryIO, Iterator, List, Optional, Union
 
 
 @dataclass
@@ -22,7 +22,7 @@ isa_example = "ISA*00*          *00*          *ZZ*SOMEBODYELSE   *ZZ*MAYBEYOU   
 
 
 def readdocument(
-    edi_obj: Union[str, BufferedReader],
+    edi_obj: Union[str, BinaryIO],
     filename: str = "stream",
     encoding: str = "latin-1",
 ) -> Iterator[str]:
