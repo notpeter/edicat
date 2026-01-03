@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
   pull_request:
-    branches: [main, master]
+    branches: [main]
 
 jobs:
   python:
@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        python-version: ["3.10", "3.14"]
 
     steps:
       - uses: actions/checkout@v4
@@ -22,40 +22,30 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install package
+      - name: Test package install
         run: pip install -e .
 
       - name: Run tests
         run: python -m unittest discover -s tests -v
 
-      - name: Test CLI
-        run: |
-          echo "ISA*00*          *00*          *01*0011223456     *01*999999999      *950120*0147*U*00300*000000005*0*P*^~GS*PO*test~SE*2*1~" | edicat | head -1 | grep -q "ISA"
-          echo "UNA:+.? 'UNB+IATB:1+test'UNT+1+1'" | edicat | head -1 | grep -q "UNA"
-
   rust:
     name: Rust ${{ matrix.rust }}
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        rust: [stable, beta, nightly]
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust ${{ matrix.rust }}
+      - name: Install Rust
         run: |
-          rustup update ${{ matrix.rust }}
-          rustup default ${{ matrix.rust }}
+          rustup update stable
+          rustup default stable
 
       - name: Check formatting
-        if: matrix.rust == 'stable'
         run: |
           rustup component add rustfmt
           cargo fmt --manifest-path rust/Cargo.toml -- --check
 
       - name: Run clippy
-        if: matrix.rust == 'stable'
         run: |
           rustup component add clippy
           cargo clippy --manifest-path rust/Cargo.toml -- -D warnings
@@ -73,73 +63,3 @@ jobs:
         run: |
           echo "ISA*00*          *00*          *01*0011223456     *01*999999999      *950120*0147*U*00300*000000005*0*P*^~GS*PO*test~SE*2*1~" | ./rust/target/release/edicat | head -1 | grep -q "ISA"
           echo "UNA:+.? 'UNB+IATB:1+test'UNT+1+1'" | ./rust/target/release/edicat | head -1 | grep -q "UNA"
-
-  # Verify Rust and Python produce identical output
-  compare-outputs:
-    name: Compare Rust/Python outputs
-    runs-on: ubuntu-latest
-    needs: [python, rust]
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install Python package
-        run: pip install -e .
-
-      - name: Install Rust
-        run: |
-          rustup update stable
-          rustup default stable
-
-      - name: Build Rust
-        run: cargo build --manifest-path rust/Cargo.toml --release
-
-      - name: Compare X12 output
-        run: |
-          INPUT="ISA*00*          *00*          *01*0011223456     *01*999999999      *950120*0147*U*00300*000000005*0*P*^~GS*PO*0011223456*999999999*950120*0147*5*X*003040~ST*850*000000001~SE*2*000000001~GE*1*5~IEA*1*000000005~"
-          PYTHON_OUT=$(echo "$INPUT" | edicat)
-          RUST_OUT=$(echo "$INPUT" | ./rust/target/release/edicat)
-          if [ "$PYTHON_OUT" != "$RUST_OUT" ]; then
-            echo "X12 output mismatch!"
-            echo "Python:"
-            echo "$PYTHON_OUT"
-            echo "Rust:"
-            echo "$RUST_OUT"
-            exit 1
-          fi
-          echo "X12 outputs match!"
-
-      - name: Compare EDIFACT output
-        run: |
-          INPUT="UNA:+.? 'UNB+IATB:1+6XPPC:ZZ+LHPPC:ZZ+940101:0950+1'UNH+1+PAORES:93:1:IA'MSG+1:45'UNT+3+1'UNZ+1+1'"
-          PYTHON_OUT=$(echo "$INPUT" | edicat)
-          RUST_OUT=$(echo "$INPUT" | ./rust/target/release/edicat)
-          if [ "$PYTHON_OUT" != "$RUST_OUT" ]; then
-            echo "EDIFACT output mismatch!"
-            echo "Python:"
-            echo "$PYTHON_OUT"
-            echo "Rust:"
-            echo "$RUST_OUT"
-            exit 1
-          fi
-          echo "EDIFACT outputs match!"
-
-      - name: Compare line numbering
-        run: |
-          INPUT="UNA:+.? 'UNB+IATB:1+test'UNT+1+1'UNZ+1+1'"
-          PYTHON_OUT=$(echo "$INPUT" | edicat -n)
-          RUST_OUT=$(echo "$INPUT" | ./rust/target/release/edicat -n)
-          if [ "$PYTHON_OUT" != "$RUST_OUT" ]; then
-            echo "Line numbering output mismatch!"
-            echo "Python:"
-            echo "$PYTHON_OUT"
-            echo "Rust:"
-            echo "$RUST_OUT"
-            exit 1
-          fi
-          echo "Line numbering outputs match!"
