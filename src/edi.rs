@@ -69,10 +69,8 @@ pub fn detect(text: &str) -> Option<Sep> {
     }
 
     // EDIFACT no UNA: begins with UNB followed by UNH
-    if text.starts_with("UNB") && bytes.len() >= 13 {
-        if text[3..13.min(text.len())].contains("UN") {
-            return detect_edifact_no_una(text);
-        }
+    if text.starts_with("UNB") && bytes.len() >= 13 && text[3..13.min(text.len())].contains("UN") {
+        return detect_edifact_no_una(text);
     }
 
     eprintln!(
