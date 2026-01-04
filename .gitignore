@@ -10,3 +10,6 @@ __pycache__/
 dist/
 build/
 venv/
+
+# Rust Stuff
+**/target/
